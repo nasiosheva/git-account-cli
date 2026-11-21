@@ -59,6 +59,11 @@ public struct RepositoryInspector {
     }
 
     public func remotes() throws -> [(String, String, String)] {
+        try rawRemotes().map { ($0.0, $0.1, redactRemote($0.2)) }
+    }
+
+    /// Raw URLs are for validation only and must never be printed or logged.
+    public func rawRemotes() throws -> [(String, String, String)] {
         let result = try git(["remote"])
         guard result.status == 0 else { throw AccountError.message("Could not enumerate Git remotes.") }
         var rows: [(String, String, String)] = []
@@ -68,7 +73,7 @@ public struct RepositoryInspector {
                 let urls = try git(arguments)
                 guard urls.status == 0 else { throw AccountError.message("Could not inspect remote URLs.") }
                 for url in urls.output.split(whereSeparator: \.isNewline) {
-                    rows.append((name, direction, redactRemote(String(url))))
+                    rows.append((name, direction, String(url)))
                 }
             }
         }

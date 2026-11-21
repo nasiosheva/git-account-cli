@@ -151,16 +151,15 @@ do {
             }
         } else {
             print("Repository: \(repo.root.path)")
-            let remotes = try repo.remotes()
+            let remotes = try repo.rawRemotes()
             let origin = remotes.filter { $0.0 == "origin" }
             var problems = false
             if origin.isEmpty {
                 print("Problem: origin is missing. Add an SSH origin remote.")
                 problems = true
             } else {
-                // Redacted form retains only a scheme/host, avoiding accidental disclosure.
                 for (_, direction, url) in origin {
-                    if !(url.hasPrefix("ssh://") || (!url.contains("://") && url.hasSuffix(":…") && !url.hasPrefix("(local"))) {
+                    if SSHRemote.parse(url) == nil {
                         print("Problem: origin \(direction) is not SSH. Configure an SSH remote.")
                         problems = true
                     }
